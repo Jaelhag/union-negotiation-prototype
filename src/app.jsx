@@ -8,6 +8,56 @@ function App() {
   const [showNew, setShowNew] = useState(false);
   const [negotiations, setNegotiations] = useState(window.DEMO_NEGOTIATIONS);
 
+  // ─── Auth + real-data fetch ─────────────────────────────────────────────
+  // When the user signs in, fetch their actual negotiations from SharePoint
+  // and replace the demo data. When they sign out, fall back to demo data.
+  const [authedUser, setAuthedUser] = useState(() => window.AUTH ? window.AUTH.getAccount() : null);
+  const [loadingLive, setLoadingLive] = useState(false);
+  const [liveError, setLiveError] = useState(null);
+  const [isLive, setIsLive] = useState(false);
+
+  const loadLiveData = async () => {
+    if (!window.AUTH || !window.AUTH.getAccount()) return;
+    setLoadingLive(true);
+    setLiveError(null);
+    try {
+      const realNegs = await window.GRAPH.loadAllNegotiations();
+      if (realNegs.length > 0) {
+        setNegotiations(realNegs);
+        setIsLive(true);
+      } else {
+        // Signed in but no negotiation sites yet — keep demo, show note.
+        setLiveError("No negotiation workspaces found in your tenant.");
+      }
+    } catch (e) {
+      console.error("loadLiveData error:", e);
+      setLiveError(e.message || String(e));
+    } finally {
+      setLoadingLive(false);
+    }
+  };
+
+  // React to sign-in / sign-out
+  useEffect(() => {
+    if (!window.AUTH) return;
+    const unsub = window.AUTH.onChange(() => {
+      const acct = window.AUTH.getAccount();
+      setAuthedUser(acct);
+      if (acct) {
+        loadLiveData();
+      } else {
+        setNegotiations(window.DEMO_NEGOTIATIONS);
+        setIsLive(false);
+        setLiveError(null);
+      }
+    });
+    // Also load on mount if already signed in (e.g. page reload with cached session)
+    if (window.AUTH.getAccount()) {
+      loadLiveData();
+    }
+    return unsub;
+  }, []);
+
   // Apply tweaks to body
   useEffect(() => {
     document.body.setAttribute("data-density", t.density || "comfortable");
@@ -66,6 +116,21 @@ function App() {
       />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, minHeight: 0, height: "100%" }}>
+        {/* Top bar with data-source banner + sign-in pill */}
+        <div style={{ display: "flex", alignItems: "stretch", background: "var(--surface)", borderBottom: "1px solid var(--border)" }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <DataSourceBanner
+              isLive={isLive}
+              isLoading={loadingLive}
+              error={liveError}
+              onRetry={loadLiveData}
+            />
+          </div>
+          <div style={{ display: "flex", alignItems: "center", padding: "8px 16px", borderLeft: "1px solid var(--border)" }}>
+            <AuthPill onAuthChange={() => { /* state updates via onChange listener */ }}/>
+          </div>
+        </div>
+
         {route === "dashboard" && (
           <Dashboard
             negotiations={negotiations}

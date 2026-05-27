@@ -177,10 +177,17 @@
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
+<!-- Microsoft Authentication Library (MSAL) for sign-in + token acquisition.
+     Must load BEFORE any of our scripts that touch window.AUTH. -->
+<script src="https://alcdn.msauth.net/browser/3.20.0/js/msal-browser.min.js"></script>
+
 <script type="text/babel" src="src/tweaks-panel.jsx"></script>
 <script type="text/babel" src="src/data.jsx"></script>
 <script type="text/babel" src="src/icons.jsx"></script>
 <script type="text/babel" src="src/ui-primitives.jsx"></script>
+<script type="text/babel" src="src/msal-config.jsx"></script>
+<script type="text/babel" src="src/graph-client.jsx"></script>
+<script type="text/babel" src="src/auth-ui.jsx"></script>
 <script type="text/babel" src="src/sidebar.jsx"></script>
 <script type="text/babel" src="src/dashboard.jsx"></script>
 <script type="text/babel" src="src/new-negotiation.jsx"></script>
