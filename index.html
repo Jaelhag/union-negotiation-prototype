@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Union Negotiation System</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:        #F6F4EE;          /* warm off-white */
+    --bg-2:      #EFECE4;
+    --surface:   #FFFFFF;
+    --surface-2: #FBF9F4;
+
+    --ink:       #161A1D;
+    --ink-2:     #3C434A;
+    --ink-3:     #6B7280;
+    --ink-4:     #9CA3AF;
+
+    --border:    #E5E1D7;
+    --border-2:  #D6D1C3;
+    --border-strong: #C9C3B2;
+
+    --primary:   #1F4A47;           /* deep slate teal */
+    --primary-2: #2C6863;
+    --primary-soft: #E5EEEC;
+    --primary-ink:  #0F2725;
+
+    --accent-amber: #B47A1A;
+    --accent-amber-soft: #FAF0DA;
+
+    --signal-green: #2F7D4F;
+    --signal-green-soft: #E2F0E6;
+    --signal-red:   #B0382E;
+    --signal-red-soft: #F6E1DD;
+    --signal-blue:  #2C5AA0;
+    --signal-blue-soft: #E4ECF7;
+
+    --radius:    8px;
+    --radius-lg: 12px;
+    --shadow-1:  0 1px 0 rgba(20,24,28,0.04), 0 1px 2px rgba(20,24,28,0.04);
+    --shadow-2:  0 4px 12px -2px rgba(20,24,28,0.08), 0 2px 4px rgba(20,24,28,0.04);
+    --shadow-modal: 0 24px 48px -12px rgba(20,24,28,0.20), 0 8px 16px -4px rgba(20,24,28,0.08);
+
+    --font-sans: 'Geist', system-ui, -apple-system, sans-serif;
+    --font-serif: 'Source Serif 4', Georgia, serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  /* High-density mode */
+  body[data-density="comfortable"] { --row-h: 44px; --pad-y: 12px; }
+  body[data-density="dense"]       { --row-h: 36px; --pad-y: 8px; font-size: 13px; }
+
+  /* Dark theme override (optional via tweaks) */
+  body[data-theme="ink"] {
+    --bg: #14181C;
+    --bg-2: #1A1F24;
+    --surface: #1E242A;
+    --surface-2: #232932;
+    --ink: #ECEFF4;
+    --ink-2: #C5CCD3;
+    --ink-3: #8C95A0;
+    --ink-4: #6B7480;
+    --border: #2B313A;
+    --border-2: #353C46;
+    --border-strong: #424A55;
+    --primary: #6FB5AD;
+    --primary-2: #8DCBC3;
+    --primary-soft: #1F3835;
+    --primary-ink: #C9E6E2;
+    --accent-amber-soft: #2E2412;
+    --signal-green-soft: #1A2E22;
+    --signal-red-soft: #2E1A18;
+    --signal-blue-soft: #18222F;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.5;
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    --row-h: 44px;
+    --pad-y: 12px;
+  }
+
+  #root { height: 100vh; overflow: hidden; }
+
+  /* utility */
+  .serif { font-family: var(--font-serif); }
+  .mono  { font-family: var(--font-mono); }
+
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  ::selection { background: var(--primary-soft); color: var(--primary-ink); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 8px; border: 2px solid var(--bg); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+  ::-webkit-scrollbar-track { background: transparent; }
+
+  /* Markdown rendered in chat */
+  .markdown-body h2 { font-size: 17px; font-weight: 600; letter-spacing: -0.015em; margin: 18px 0 8px; color: var(--ink); }
+  .markdown-body h3 { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; margin: 16px 0 6px; color: var(--ink); }
+  .markdown-body h4 { font-size: 13px; font-weight: 600; margin: 14px 0 4px; color: var(--ink); text-transform: uppercase; letter-spacing: 0.04em; }
+  .markdown-body p  { margin: 0 0 10px; }
+  .markdown-body p:last-child { margin-bottom: 0; }
+  .markdown-body strong { color: var(--ink); font-weight: 600; }
+  .markdown-body em { font-style: italic; }
+  .markdown-body code {
+    font-family: var(--font-mono); font-size: 0.88em;
+    background: var(--bg-2); padding: 1px 5px; border-radius: 4px;
+    color: var(--primary-ink);
+  }
+  .markdown-body pre {
+    font-family: var(--font-mono); font-size: 12.5px;
+    background: var(--bg-2); padding: 12px 14px; border-radius: 7px;
+    overflow-x: auto; margin: 8px 0;
+    border: 1px solid var(--border);
+  }
+  .markdown-body ul, .markdown-body ol { margin: 4px 0 10px; padding-left: 22px; }
+  .markdown-body li { margin: 3px 0; }
+  .markdown-body blockquote {
+    border-left: 3px solid var(--border-strong);
+    padding: 4px 12px; margin: 8px 0;
+    color: var(--ink-2); font-family: var(--font-serif); font-style: italic;
+    background: var(--surface-2);
+  }
+  .markdown-body table {
+    border-collapse: collapse; margin: 10px 0; font-size: 12.5px;
+    width: 100%; font-variant-numeric: tabular-nums;
+    border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+  }
+  .markdown-body th {
+    background: var(--bg-2); padding: 7px 10px;
+    font-weight: 600; color: var(--ink-2); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border);
+  }
+  .markdown-body td {
+    padding: 7px 10px; border-bottom: 1px solid var(--border);
+    color: var(--ink-2);
+  }
+  .markdown-body tr:last-child td { border-bottom: none; }
+
+  @keyframes pulseDot {
+    0%, 80%, 100% { opacity: 0.25; transform: scale(0.8); }
+    40% { opacity: 1; transform: scale(1); }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+  // Tweak defaults — host rewrites this block on persist
+  window.__TWEAKS__ = /*EDITMODE-BEGIN*/{
+    "navLayout": "top",
+    "density": "comfortable",
+    "theme": "light",
+    "accent": "#1F4A47",
+    "showSecondaryRail": true
+  }/*EDITMODE-END*/;
+</script>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="src/tweaks-panel.jsx"></script>
+<script type="text/babel" src="src/data.jsx"></script>
+<script type="text/babel" src="src/icons.jsx"></script>
+<script type="text/babel" src="src/ui-primitives.jsx"></script>
+<script type="text/babel" src="src/sidebar.jsx"></script>
+<script type="text/babel" src="src/dashboard.jsx"></script>
+<script type="text/babel" src="src/new-negotiation.jsx"></script>
+<script type="text/babel" src="src/negotiation-overview.jsx"></script>
+<script type="text/babel" src="src/articles.jsx"></script>
+<script type="text/babel" src="src/files.jsx"></script>
+<script type="text/babel" src="src/drafting.jsx"></script>
+<script type="text/babel" src="src/communications.jsx"></script>
+<script type="text/babel" src="src/calendar.jsx"></script>
+<script type="text/babel" src="src/caucus.jsx"></script>
+<script type="text/babel" src="src/economics.jsx"></script>
+<script type="text/babel" src="src/chat.jsx"></script>
+<script type="text/babel" src="src/negotiation-shell.jsx"></script>
+<script type="text/babel" src="src/app.jsx"></script>
+
+</body>
+</html>
