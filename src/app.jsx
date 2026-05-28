@@ -11,7 +11,14 @@ function App() {
   // ─── Auth + real-data fetch ─────────────────────────────────────────────
   // When the user signs in, fetch their actual negotiations from SharePoint
   // and replace the demo data. When they sign out, fall back to demo data.
-  const [authedUser, setAuthedUser] = useState(() => window.AUTH ? window.AUTH.getAccount() : null);
+  // Defensive: anything in this auth path that throws must NOT take down the
+  // whole app. The prototype must remain viewable in demo mode even if MSAL
+  // or our scripts fail to load.
+  const safeGetAccount = () => {
+    try { return window.AUTH ? window.AUTH.getAccount() : null; }
+    catch (e) { console.warn("getAccount threw:", e); return null; }
+  };
+  const [authedUser, setAuthedUser] = useState(safeGetAccount);
   const [loadingLive, setLoadingLive] = useState(false);
   const [liveError, setLiveError] = useState(null);
   const [isLive, setIsLive] = useState(false);
@@ -116,20 +123,24 @@ function App() {
       />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, minHeight: 0, height: "100%" }}>
-        {/* Top bar with data-source banner + sign-in pill */}
-        <div style={{ display: "flex", alignItems: "stretch", background: "var(--surface)", borderBottom: "1px solid var(--border)" }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <DataSourceBanner
-              isLive={isLive}
-              isLoading={loadingLive}
-              error={liveError}
-              onRetry={loadLiveData}
-            />
+        {/* Top bar with data-source banner + sign-in pill.
+            Defensive: only render if the auth components actually loaded.
+            If they failed to compile, the prototype still works in demo mode. */}
+        {typeof DataSourceBanner !== "undefined" && typeof AuthPill !== "undefined" && (
+          <div style={{ display: "flex", alignItems: "stretch", background: "var(--surface)", borderBottom: "1px solid var(--border)" }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <DataSourceBanner
+                isLive={isLive}
+                isLoading={loadingLive}
+                error={liveError}
+                onRetry={loadLiveData}
+              />
+            </div>
+            <div style={{ display: "flex", alignItems: "center", padding: "8px 16px", borderLeft: "1px solid var(--border)" }}>
+              <AuthPill onAuthChange={() => { /* state updates via onChange listener */ }}/>
+            </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", padding: "8px 16px", borderLeft: "1px solid var(--border)" }}>
-            <AuthPill onAuthChange={() => { /* state updates via onChange listener */ }}/>
-          </div>
-        </div>
+        )}
 
         {route === "dashboard" && (
           <Dashboard
