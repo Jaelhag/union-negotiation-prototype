@@ -178,8 +178,9 @@
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
 <!-- Microsoft Authentication Library (MSAL) for sign-in + token acquisition.
-     Must load BEFORE any of our scripts that touch window.AUTH. -->
-<script src="https://alcdn.msauth.net/browser/3.20.0/js/msal-browser.min.js"></script>
+     Must load BEFORE any of our scripts that touch window.AUTH.
+     Using jsDelivr (reliable, version-pinned). -->
+<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.20.0/lib/msal-browser.min.js"></script>
 
 <script type="text/babel" src="src/tweaks-panel.jsx"></script>
 <script type="text/babel" src="src/data.jsx"></script>
