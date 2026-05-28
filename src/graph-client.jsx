@@ -48,31 +48,25 @@ function siteRef(alias) {
 
 // ─── Site discovery ────────────────────────────────────────────────────────
 
-// List all SharePoint sites under /sites/* that the user has access to.
-// We use this to populate the dashboard with all negotiation workspaces.
-//
-// Filter to ones that look like negotiation sites by checking for an
-// "Overview" list (our provisioning script's marker).
-async function listNegotiationSites() {
-  // Graph's /sites?search=* returns sites the user can read.
-  const data = await graphFetch(`/sites?search=*`);
-  const candidates = (data.value || []).filter(s => {
-    // Only sites under /sites/, not the root or personal sites
-    return s.webUrl && s.webUrl.includes("/sites/");
-  });
+// Known negotiation workspaces. When you provision a new one, add its alias
+// here. Long-term we'd maintain this as a SharePoint master list to avoid
+// hardcoding, but for v1 with 1-2 workspaces it's simpler and faster.
+const KNOWN_NEGOTIATION_ALIASES = ["nyra-cctv"];
 
-  // Check each one for an Overview list. Done in parallel.
-  // Sites without Overview are filtered out (not a negotiation workspace).
-  const checks = await Promise.all(candidates.map(async (s) => {
+// Load each known site by direct path lookup. Avoids the noisy "search all
+// sites in tenant + probe each for an Overview list" approach that flooded
+// the console with 404s for non-negotiation sites.
+async function listNegotiationSites() {
+  const sites = await Promise.all(KNOWN_NEGOTIATION_ALIASES.map(async (alias) => {
     try {
-      // Try to load the Overview list — if 404, this isn't a negotiation site.
-      await graphFetch(`/sites/${s.id}/lists/Overview`);
-      return s;
+      const site = await graphFetch(`/sites/${SP_HOST}:/sites/${alias}`);
+      return site;
     } catch (e) {
+      console.warn(`Couldn't load workspace '${alias}':`, e.message);
       return null;
     }
   }));
-  return checks.filter(Boolean);
+  return sites.filter(Boolean);
 }
 
 // ─── Single negotiation data ───────────────────────────────────────────────

@@ -55,9 +55,25 @@ const Dashboard = ({ negotiations, archive, onOpenNegotiation, onNew }) => {
               <button style={ghostLink}>View all</button>
             </div>
             <div>
-              {[...negotiations[0].activity.slice(0, 4), ...negotiations[1].activity.slice(0, 2)].map((a, i, arr) => (
-                <ActivityRow key={i} activity={a} negotiation={i < 4 ? negotiations[0] : negotiations[1]} last={i === arr.length - 1} />
-              ))}
+              {/* Cross-matter activity feed — flatMap so this works for
+                  any number of negotiations (1, 2, N). Original prototype
+                  assumed exactly 2 which crashed when real data only had
+                  one workspace. */}
+              {(() => {
+                const items = negotiations.flatMap((n, idx) =>
+                  ((n && n.activity) || []).slice(0, idx === 0 ? 4 : 2).map(a => ({ act: a, neg: n }))
+                );
+                if (items.length === 0) {
+                  return (
+                    <div style={{ padding: "24px 18px", fontSize: 13, color: "var(--ink-3)", textAlign: "center" }}>
+                      No recent activity yet.
+                    </div>
+                  );
+                }
+                return items.map((x, i, arr) => (
+                  <ActivityRow key={i} activity={x.act} negotiation={x.neg} last={i === arr.length - 1} />
+                ));
+              })()}
             </div>
           </Card>
 
